@@ -13,6 +13,8 @@ class Course:
         self.size = size
         self.perferred_times = perferred_times
         self.assigned_slot = None
+    
+    
 
 class Room:
     def __init__(self, name: str, capacity: int):
@@ -29,6 +31,12 @@ class Schedule:
         self.rooms = rooms
         self.time_slots = time_slots
         self.assignments: Dict[Course, Tuple[Room, TimeSlot]] = {}
+    
+    def __str__(self):
+        output = "\nSchedule Overview:\n"
+        for course, (room, time_slot) in self.assignments.items():
+            output += f"{course.name} -> Room: {room.name}, Time Slot: {time_slot.time_id}\n"
+        return output if self.assignments else "No schedule assigned yet"
 
 def is_valid_assignment(schedule, course, room, time_slot):
     # Check for capacity
@@ -82,13 +90,19 @@ def find_conflicted_courses(schedule):
 
 
 def forward_checking(schedule, course, room, time_slot):
-    domains = defaultdict(list)
+    domains = {}
 
     for other_course in schedule.courses:
-        if other_course != course:
+        if other_course != course and other_course not in schedule.assignments:
             domain = get_domain(other_course, schedule)
+            domains[other_course] = domain.copy()
+
             if (room, time_slot) in domain:
-                domain.remove((room, time_slot)) 
+                domain.remove((room,time_slot))
+
+            if not domain:
+                return False, domains
+    return True, domains
 
 
 # Backtrack Search
@@ -98,19 +112,22 @@ def backtracking_search(schedule: Schedule, course_index: int = 0) -> bool:
     
     course = schedule.courses[course_index]
     for room in schedule.rooms:
-        if room.capacity < course.size:
-            continue # skips room if to many students in class for room
-
-
         for time_slot in schedule.time_slots:
             if is_valid_assignment(schedule, course, room, time_slot):
                 schedule.assignments[course] = (room, time_slot)
 
-                if backtracking_search(schedule, course_index + 1):
-                    return True
+
+                is_valid, domain_backup = forward_checking(schedule, course, room, time_slot)
+                if is_valid:
+                    if backtracking_search(schedule, course_index + 1):
+                        return True
                 
+
                 del schedule.assignments[course]
-    
+
+                for i, original_domain in domain_backup.items():
+                    i.domain = original_domain
+           
     return False
 
 # Local Search
@@ -128,7 +145,9 @@ def min_conflicts(schedule, max_iterations):
         schedule.assignments[course] = random.choice(get_domain(course, schedule))
 
         if domain:
-
+                schedule.assignments[course] = random.choice(domain)
+        else:
+            return False
 
     return False
 
