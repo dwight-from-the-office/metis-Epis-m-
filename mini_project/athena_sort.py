@@ -51,7 +51,7 @@ def get_domain(course, schedule):
     for room in schedule.rooms:
         # space avalable in room
         if room.capacity >= course.size:
-            for time_slot in schedule.time_slot:
+            for time_slot in schedule.time_slots:
                 if is_valid_assignment(schedule, course, room, time_slot):
                     domain.append((room, time_slot))
 
@@ -59,7 +59,7 @@ def get_domain(course, schedule):
 
 def count_conflicts(schedule):
     conflicts = 0
-    for course, (room, time_slot) in schedule.assignment.items():
+    for course, (room, time_slot) in schedule.assignments.items():
         for other_course, (other_room, other_time) in schedule.assignments.items():
             if course != other_course:
                 # Conflict professor assigned to two classes at the same time 
@@ -98,7 +98,7 @@ def backtracking_search(schedule: Schedule, course_index: int = 0) -> bool:
     
     course = schedule.courses[course_index]
     for room in schedule.rooms:
-        if room.capacitiy < course.size:
+        if room.capacity < course.size:
             continue # skips room if to many students in class for room
 
 
@@ -112,3 +112,101 @@ def backtracking_search(schedule: Schedule, course_index: int = 0) -> bool:
                 del schedule.assignments[course]
     
     return False
+
+# Local Search
+def min_conflicts(schedule, max_iterations):
+    for course in schedule.courses:
+        schedule.assignments[course] = random.choice(get_domain(course, schedule))
+        domain = get_domain(course, schedule)
+    for i in range(max_iterations):
+        conflicted_courses = find_conflicted_courses(schedule)
+
+        if not conflicted_courses:
+            return True  # no conflicts
+        
+        course = random.choice(conflicted_courses)
+        schedule.assignments[course] = random.choice(get_domain(course, schedule))
+
+        if domain:
+
+
+    return False
+
+
+# Main function
+def main():
+    # used ai to populate data with test set starting here
+        # Define 20 test courses
+    courses = [
+        Course("CS101", "Prof A", 30, [1, 2]),
+        Course("CS102", "Prof B", 25, [2, 3]),
+        Course("CS103", "Prof C", 40, [3, 4]),
+        Course("CS104", "Prof D", 20, [1, 5]),
+        Course("CS105", "Prof E", 35, [2, 4]),
+        Course("CS106", "Prof A", 45, [3, 6]),
+        Course("CS107", "Prof B", 50, [1, 3]),
+        Course("CS108", "Prof C", 28, [2, 5]),
+        Course("CS109", "Prof D", 32, [4, 6]),
+        Course("CS110", "Prof E", 38, [3, 5]),
+        Course("CS111", "Prof A", 26, [1, 4]),
+        Course("CS112", "Prof B", 44, [2, 6]),
+        Course("CS113", "Prof C", 37, [1, 3]),
+        Course("CS114", "Prof D", 30, [5, 6]),
+        Course("CS115", "Prof E", 41, [3, 4]),
+        Course("CS116", "Prof A", 29, [2, 5]),
+        Course("CS117", "Prof B", 48, [1, 6]),
+        Course("CS118", "Prof C", 34, [2, 4]),
+        Course("CS119", "Prof D", 22, [1, 3]),
+        Course("CS120", "Prof E", 50, [4, 6])
+    ]
+
+    # Define 5 available rooms
+    rooms = [
+        Room("Room1", 50),
+        Room("Room2", 40),
+        Room("Room3", 30),
+        Room("Room4", 35),
+        Room("Room5", 45)
+    ]
+
+    # Define 6 time slots
+    time_slots = [
+        TimeSlot(1),
+        TimeSlot(2),
+        TimeSlot(3),
+        TimeSlot(4),
+        TimeSlot(5),
+        TimeSlot(6)
+    ]
+    # ai code end here
+    # creates schedule
+    schedule = Schedule(courses, rooms, time_slots)
+    print(schedule)
+
+    # backtracking search
+    start_time = time.time()
+    backtracking_success = backtracking_search(schedule)
+    end_time = time.time()
+    print(f"Execution Time (Backtracking): {end_time - start_time:.4f} seconds")
+
+
+    # min-conflicts
+    if not backtracking_success:
+        start_time = time.time()
+        min_conflicts_success = min_conflicts(schedule)
+        end_time = time.time()
+        print(f"Execution Time (Min-Conflicts): {end_time - start_time:.4f} seconds")
+    else:
+        min_conflicts_success = False
+
+
+    # final schedule
+    if backtracking_success or min_conflicts_success:
+        print("\nValid Schedule Found:")
+        for course, (room, time_slot) in schedule.assignments.items():
+            print(f"{course.name} -> Room: {room.name}, Time Slot: {time_slot.time_id}")
+    else:
+        print("\nNo Valid Schedule Found.")
+
+if __name__ == '__main__':
+    main()
