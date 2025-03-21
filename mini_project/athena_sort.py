@@ -214,7 +214,17 @@ def main():
         Course("CS107", "Prof B", 50, [1, 3]),
         Course("CS108", "Prof C", 28, [2, 5]),
         Course("CS109", "Prof D", 32, [4, 6]),
-        Course("CS110", "Prof E", 38, [3, 5])
+        Course("CS110", "Prof E", 38, [3, 5]),
+        Course("CS111", "Prof A", 26, [1, 4]),
+        Course("CS112", "Prof B", 44, [2, 6]),
+        Course("CS113", "Prof C", 37, [1, 3]),
+        Course("CS114", "Prof D", 30, [5, 6]),
+        Course("CS115", "Prof E", 41, [3, 4]),
+        Course("CS116", "Prof A", 29, [2, 5]),
+        Course("CS117", "Prof B", 48, [1, 6]),
+        Course("CS118", "Prof C", 34, [2, 4]),
+        Course("CS119", "Prof D", 22, [1, 3]),
+        Course("CS120", "Prof E", 50, [4, 6])
     ]
 
     # Define 5 available rooms
