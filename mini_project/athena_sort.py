@@ -38,6 +38,19 @@ class Schedule:
             output += f"{course.name} -> Room: {room.name}, Time Slot: {time_slot.time_id}\n"
         return output if self.assignments else "No schedule assigned yet"
 
+def sort_domain_lcv(course, domain, schedule):
+    def count_constraints(value):
+        room, time_slot = value
+        impact = 0
+        for other_course in schedule.courses:    
+            if other_course != course and other_course not in schedule.assignments:
+                other_domain = get_domain(other_course, schedule)
+                if (room, time_slot) in other_domain:
+                    impact += 1
+        return impact
+    return sorted(domain, key=count_constraints)
+
+
 def is_valid_assignment(schedule, course, room, time_slot):
     # Check for capacity
     if room.capacity < course.size:
@@ -115,15 +128,14 @@ def backtracking_search(schedule: Schedule) -> bool:
         return False
     
     domain = get_domain(course, schedule)
+    domain = sort_domain_lcv(course, domain, schedule)
 
     for room , time_slot in domain:
         
         schedule.assignments[course] = (room, time_slot)
 
-        is_valid, _ = forward_checking(schedule, course, room, time_slot)
-        if is_valid:        
-            if backtracking_search(schedule):
-                return True
+        if backtracking_search(schedule):
+            return True
                 
 
         del schedule.assignments[course]
